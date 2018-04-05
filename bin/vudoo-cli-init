@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+const chalk = require('chalk')
+const cli = require('commander');
+
+cli.usage('<path>');
+
+cli.on('help', help);
+cli.on('--help', help);
+
+
+function help(){
+	console.log(chalk.gray('help'));
+}
