@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/BMKeros/vudoo-cli#readme",
   "dependencies": {
+    "chalk": "^2.3.2",
     "commander": "^2.15.1",
     "metalsmith": "^2.3.0"
   }
