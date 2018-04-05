@@ -1,0 +1,28 @@
+{
+  "name": "vudoo-cli",
+  "version": "1.0.0",
+  "description": "CLI for VueJS + Odoo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BMKeros/vudoo-cli.git"
+  },
+  "keywords": [
+    "odoo",
+    "VueJs",
+    "CLI"
+  ],
+  "author": "Israel Lugo <hostelix>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BMKeros/vudoo-cli/issues"
+  },
+  "homepage": "https://github.com/BMKeros/vudoo-cli#readme",
+  "dependencies": {
+    "commander": "^2.15.1",
+    "metalsmith": "^2.3.0"
+  }
+}
