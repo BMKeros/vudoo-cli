@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+
+require('commander')
+	.command('init', 'Generate a new project from template')
+	.parse(process.argv)
