@@ -1,0 +1,15 @@
+{
+  "name": "{{name_project}}",
+  "version": "1.0.0",
+  "description": "{{description}}",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "{{git_repository}}"
+  },
+  "author": "{{author}}",
+  "license": "{{license}}"
+}
