@@ -9,7 +9,6 @@ const download_repository = require('download-git-repo');
 const shell = require('shelljs');
 
 const exists = fs.existsSync;
-const mkdir = fs.mkdirSync;
 
 const home = (process.platform === 'win32')? (process.env.HOMEPATH) : (process.env.HOME);
 const base_dir_templates = path.join(home, '.cache-vudoo-templates');
@@ -86,4 +85,3 @@ function checkDest(dest){
 }
 
 program.parse(process.argv);
-	
