@@ -1,5 +1,89 @@
 #!/usr/bin/env node
+const program = require('commander');
+const chalk = require('chalk');
+const ora = require('ora');
+const path = require('path');
+const rm = require('rimraf').sync;
+const fs = require('fs');
+const download_repository = require('download-git-repo');
+const shell = require('shelljs');
 
-require('commander')
-	.command('init', 'Generate a new project from template')
-	.parse(process.argv)
+const exists = fs.existsSync;
+const mkdir = fs.mkdirSync;
+
+const home = (process.platform === 'win32')? (process.env.HOMEPATH) : (process.env.HOME);
+const base_dir_templates = path.join(home, '.cache-vudoo-templates');
+
+program
+    .command('init <module-name>')
+    .description('Generate a new project from template')
+    .option("-t, --template [type]", "specify template (odoo8|odoo9|odoo10|odoo11|simple)", "simple")
+    .action((name, options) => {
+        const template = options.template;
+        const repository = generateNameRepoitory(template);
+        const dest_download = path.join(base_dir_templates, template);
+
+        checkDest(dest_download); // Create folder destination
+
+        downloadAndGenerate(repository, dest_download);
+    });
+
+
+	const enhanceErrorMessages = (methodName, log) => {
+		program.Command.prototype[methodName] = function (...args) {
+		    if (methodName === 'unknownOption' && this._allowUnknownOption) {
+			    return
+		    }
+		    this.outputHelp()
+		    console.log(`  ` + chalk.red(log(...args)))
+		    console.log()
+		    process.exit(1)
+		}
+	}
+	  
+	enhanceErrorMessages('missingArgument', argName => {
+		return `\n Missing required argument ${chalk.yellow(`<${argName}>`)}.`
+	})
+	  
+	enhanceErrorMessages('unknownOption', optionName => {
+		return `Unknown option ${chalk.yellow(optionName)}.`
+	})
+	  
+	enhanceErrorMessages('optionMissingArgument', (option, flag) => {
+		return `Missing required argument for option ${chalk.yellow(option.flags)}` + (
+		  flag ? `, got ${chalk.yellow(flag)}` : ``
+		)
+	})
+		
+function generateNameRepoitory(name){
+    const main_repo = 'BMKeros/vudoo-templates';
+    switch(name){
+        case 'simple': return `${main_repo}#simple`;
+        case 'odoo8': return `${main_repo}#odoo8`;
+        case 'odoo9': return `${main_repo}#odoo9`
+        case 'odoo10': return `${main_repo}#odoo10`;
+        case 'odoo11': return `${main_repo}#odoo11`;
+        default: return `${main_repo}#simple`;
+    }
+}
+
+function downloadAndGenerate (repo, dest) {
+	const spinner = ora('Downloading template from vudoo-templates');
+    spinner.start();
+    
+    if (exists(dest)) rm(dest)
+
+    download_repository(repo, dest, { clone: false }, err => {
+        spinner.stop()
+        if (err){ 
+            console.log('Failed to download repo ' + template + ': ' + err.message.trim())
+        }
+    });
+}
+
+function checkDest(dest){
+    if (!exists(dest)) shell.mkdir('-p', dest);
+}
+
+program.parse(process.argv);
+	
