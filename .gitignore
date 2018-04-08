@@ -39,5 +39,5 @@ typings/
 .env
 
 .idea/
-.swp
-.swo
+*.swp
+*.swo
