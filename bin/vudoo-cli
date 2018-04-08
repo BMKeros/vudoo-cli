@@ -9,24 +9,20 @@ const download_repository = require('download-git-repo');
 const shell = require('shelljs');
 const generator = require('../lib/generator');
 const inquirer = require('inquirer');
+const local_path = require('../lib/local-path');
 
 const exists = fs.existsSync;
-
-const home = (process.platform === 'win32')? (process.env.HOMEPATH) : (process.env.HOME);
-const base_dir_templates = path.join(home, '.cache-vudoo-templates');
 
 program
     .command('init <module-name>')
     .description('Generate a new project from template')
     .option("-t, --template [type]", "specify template (odoo8|odoo9|odoo10|odoo11|simple)", "simple")
     .option("-d, --destination [path]", "Destination of the module", '.')
-    .action((name, options) => {
+    .action((module_name, options) => {
         const template = options.template;
         const repository = generateNameRepository(template);
-        const dest_download = path.join(base_dir_templates, template);
         const dest_generate = (options.destination === '.') ? path.resolve('.') : (options.destination);
-
-        checkDest(dest_download); // Create folder destination
+        const full_path_project = path.join(dest_generate, module_name);
 
         inquirer.prompt([{
             type: 'confirm',
@@ -36,7 +32,9 @@ program
             name: 'ok'
         }]).then(answers => {
             if (answers.ok){
-                downloadAndGenerate(repository, dest_download, dest_generate, name);
+                download_template(repository, template)
+                    .then(path_download => generate_template(module_name, path_download, dest_generate))
+                    .catch(err => console.log('Failed to download ' + repository + ': ' + err.message.trim()))
             }
         }).catch(console.log);
     });
@@ -80,26 +78,34 @@ function generateNameRepository(name){
     }
 }
 
-function downloadAndGenerate (repo, dest_download, dest_gen, modulee) {
-	const spinner = ora('Downloading template from vudoo-templates');
-    spinner.start();
-    
-    if (exists(dest_download)) rm(dest_download);
+function download_template(repo, template) {
+    const dest_download = path.join(local_path.baseTemplates(), template);
 
-    download_repository(repo, dest_download, { clone: false }, err => {
-        spinner.stop()
-        if (err){ 
-            console.log('Failed to download ' + repo + ': ' + err.message.trim())
+    return new Promise((resolve, reject) => {
+        const spinner = ora('Downloading template from vudoo-templates');
+        spinner.start();
+        
+        if (exists(dest_download)){
+            rm(dest_download);
         }
         else{
-            const d = path.join(dest_gen, modulee);
-            generator(dest_download, d);
+            shell.mkdir('-p', dest_download);
         }
+
+        download_repository(repo, dest_download, { clone: false }, err => {
+            spinner.stop()
+            if (err){
+                reject(err);
+            }
+            else{
+                resolve(dest_download);
+            }
+        });
     });
 }
-
-function checkDest(dest){
-    if (!exists(dest)) shell.mkdir('-p', dest);
+function generate_template(module_name, path_template, dest_generate){
+    const dest_tmp = path.join(dest_generate, module_name);
+    generator(path_template, dest_tmp);
 }
 
 program.parse(process.argv);
