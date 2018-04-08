@@ -22,9 +22,12 @@
   },
   "homepage": "https://github.com/BMKeros/vudoo-cli#readme",
   "dependencies": {
+    "async": "^2.6.0",
     "chalk": "^2.3.2",
     "commander": "^2.15.1",
+    "consolidate": "^0.15.1",
     "download-git-repo": "^1.0.2",
+    "handlebars": "^4.0.11",
     "metalsmith": "^2.3.0",
     "ora": "^2.0.0",
     "rimraf": "^2.6.2",
