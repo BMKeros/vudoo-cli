@@ -7,6 +7,8 @@ const rm = require('rimraf').sync;
 const fs = require('fs');
 const download_repository = require('download-git-repo');
 const shell = require('shelljs');
+const generator = require('../lib/generator');
+const inquirer = require('inquirer');
 
 const exists = fs.existsSync;
 
@@ -17,14 +19,26 @@ program
     .command('init <module-name>')
     .description('Generate a new project from template')
     .option("-t, --template [type]", "specify template (odoo8|odoo9|odoo10|odoo11|simple)", "simple")
+    .option("-d, --destination [path]", "Destination of the module", '.')
     .action((name, options) => {
         const template = options.template;
-        const repository = generateNameRepoitory(template);
+        const repository = generateNameRepository(template);
         const dest_download = path.join(base_dir_templates, template);
+        const dest_generate = (options.destination === '.') ? path.resolve('.') : (options.destination);
 
         checkDest(dest_download); // Create folder destination
 
-        downloadAndGenerate(repository, dest_download);
+        inquirer.prompt([{
+            type: 'confirm',
+            message: dest_generate === '.'
+              ? 'Generate project in current directory?'
+              : 'Target directory exists. Continue?',
+            name: 'ok'
+        }]).then(answers => {
+            if (answers.ok){
+                downloadAndGenerate(repository, dest_download, dest_generate, name);
+            }
+        }).catch(console.log);
     });
 
 
@@ -54,7 +68,7 @@ program
 		)
 	})
 		
-function generateNameRepoitory(name){
+function generateNameRepository(name){
     const main_repo = 'BMKeros/vudoo-templates';
     switch(name){
         case 'simple': return `${main_repo}#simple`;
@@ -66,16 +80,20 @@ function generateNameRepoitory(name){
     }
 }
 
-function downloadAndGenerate (repo, dest) {
+function downloadAndGenerate (repo, dest_download, dest_gen, modulee) {
 	const spinner = ora('Downloading template from vudoo-templates');
     spinner.start();
     
-    if (exists(dest)) rm(dest)
+    if (exists(dest_download)) rm(dest_download);
 
-    download_repository(repo, dest, { clone: false }, err => {
+    download_repository(repo, dest_download, { clone: false }, err => {
         spinner.stop()
         if (err){ 
-            console.log('Failed to download repo ' + template + ': ' + err.message.trim())
+            console.log('Failed to download ' + repo + ': ' + err.message.trim())
+        }
+        else{
+            const d = path.join(dest_gen, modulee);
+            generator(dest_download, d);
         }
     });
 }
