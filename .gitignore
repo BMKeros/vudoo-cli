@@ -41,3 +41,4 @@ typings/
 .idea/
 *.swp
 *.swo
+*.orig

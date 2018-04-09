@@ -7,11 +7,11 @@ const rm = require('rimraf').sync;
 const fs = require('fs');
 const download_repository = require('download-git-repo');
 const shell = require('shelljs');
+const generator = require('../lib/generator');
+const inquirer = require('inquirer');
+const local_path = require('../lib/local-path');
 
 const exists = fs.existsSync;
-
-const home = (process.platform === 'win32') ? (process.env.HOMEPATH) : (process.env.HOME);
-const base_dir_templates = path.join(home, '.cache-vudoo-templates');
 
 program
 	.version('0.0.1')
@@ -21,15 +21,27 @@ program
     .command('init <module-name>')
     .description('Generate a new project from template')
     .option("-t, --template [type]", "specify template (odoo8|odoo9|odoo10|odoo11|simple)", "simple")
-    .action((name, options) => {
+    .option("-d, --destination [path]", "Destination of the module", '.')
+    .action((module_name, options) => {
         const template = options.template;
-        const repository = generateNameRepoitory(template);
-        const dest_download = path.join(base_dir_templates, template);
+        const repository = generateNameRepository(template);
+        const dest_generate = (options.destination === '.') ? path.resolve('.') : (options.destination);
+        const full_path_project = path.join(dest_generate, module_name);
 
-        checkDest(dest_download); // Create folder destination
-
-        downloadAndGenerate(repository, dest_download);
-    })
+        inquirer.prompt([{
+            type: 'confirm',
+            message: dest_generate === '.'
+              ? 'Generate project in current directory?'
+              : 'Target directory exists. Continue?',
+            name: 'ok'
+        }]).then(answers => {
+            if (answers.ok){
+                download_template(repository, template)
+                    .then(path_download => generate_template(module_name, path_download, dest_generate))
+                    .catch(err => console.log('Failed to download ' + repository + ': ' + err.message.trim()))
+            }
+        }).catch(console.log);
+    });
 
 program
 	.arguments('<command>')
@@ -53,30 +65,44 @@ program.commands.forEach(
 function generateNameRepoitory(name){
     const main_repo = 'BMKeros/vudoo-templates';
     switch(name){
-		case 'simple': return `${main_repo}#simple`;
-		case 'odoo8': return `${main_repo}#odoo8`;
-		case 'odoo9': return `${main_repo}#odoo9`
-		case 'odoo10': return `${main_repo}#odoo10`;
-		case 'odoo11': return `${main_repo}#odoo11`;
-		default: return `${main_repo}#simple`;
+        case 'simple': return `${main_repo}#simple`;
+        case 'odoo8': return `${main_repo}#odoo8`;
+        case 'odoo9': return `${main_repo}#odoo9`
+        case 'odoo10': return `${main_repo}#odoo10`;
+        case 'odoo11': return `${main_repo}#odoo11`;
+        default: return `${main_repo}#simple`;
     }
 }
 
-function downloadAndGenerate (repo, dest) {
-	const spinner = ora('Downloading template from vudoo-templates');
-    spinner.start();
-    
-    if (exists(dest)) rm(dest)
-    download_repository(repo, dest, { clone: false }, err => {
-        spinner.stop()
-        if (err){ 
-			console.log('Failed to download repo ' + template + ': ' + err.message.trim())
+const download_template = (repo, template) => {
+    const dest_download = path.join(local_path.baseTemplates(), template);
+
+    return new Promise((resolve, reject) => {
+        const spinner = ora('Downloading template from vudoo-templates');
+        spinner.start();
+        
+        if (exists(dest_download)){
+            rm(dest_download);
         }
+        else{
+            shell.mkdir('-p', dest_download);
+        }
+
+        download_repository(repo, dest_download, { clone: false }, err => {
+            spinner.stop()
+            if (err){
+                reject(err);
+            }
+            else{
+                resolve(dest_download);
+            }
+        });
     });
 }
 
-function checkDest(dest){
-    if (!exists(dest)) shell.mkdir('-p', dest);
+const generate_template = (module_name, path_template, dest_generate) => {
+    const dest_tmp = path.join(dest_generate, module_name);
+    generator(path_template, dest_tmp);
 }
 
 // Error handlers
