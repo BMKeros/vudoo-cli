@@ -10,8 +10,12 @@ const shell = require('shelljs');
 
 const exists = fs.existsSync;
 
-const home = (process.platform === 'win32')? (process.env.HOMEPATH) : (process.env.HOME);
+const home = (process.platform === 'win32') ? (process.env.HOMEPATH) : (process.env.HOME);
 const base_dir_templates = path.join(home, '.cache-vudoo-templates');
+
+program
+	.version('0.0.1')
+	.description('CLI application to generate templates for Odoo-Vue Integration')
 
 program
     .command('init <module-name>')
@@ -25,44 +29,36 @@ program
         checkDest(dest_download); // Create folder destination
 
         downloadAndGenerate(repository, dest_download);
-    });
+    })
 
+program
+	.arguments('<command>')
+	.action((cmd) => {
+		program.outputHelp()
+		console.log(`  ` + chalk.red(`Unknown command ${chalk.yellow(cmd)}.`))
+		console.log()
+	})
 
-	const enhanceErrorMessages = (methodName, log) => {
-		program.Command.prototype[methodName] = function (...args) {
-		    if (methodName === 'unknownOption' && this._allowUnknownOption) {
-			    return
-		    }
-		    this.outputHelp()
-		    console.log(`  ` + chalk.red(log(...args)))
-		    console.log()
-		    process.exit(1)
-		}
-	}
-	  
-	enhanceErrorMessages('missingArgument', argName => {
-		return `\n Missing required argument ${chalk.yellow(`<${argName}>`)}.`
+program
+	.on('--help', () => {
+		console.log()
+		console.log(`  Run ${chalk.cyan(`vudoo-cli <command> --help`)} for detailed usage of given command.`)
+		console.log()
 	})
-	  
-	enhanceErrorMessages('unknownOption', optionName => {
-		return `Unknown option ${chalk.yellow(optionName)}.`
-	})
-	  
-	enhanceErrorMessages('optionMissingArgument', (option, flag) => {
-		return `Missing required argument for option ${chalk.yellow(option.flags)}` + (
-		  flag ? `, got ${chalk.yellow(flag)}` : ``
-		)
-	})
-		
+
+program.commands.forEach(
+	c => c.on('--help', () => console.log())
+)
+
 function generateNameRepoitory(name){
     const main_repo = 'BMKeros/vudoo-templates';
     switch(name){
-        case 'simple': return `${main_repo}#simple`;
-        case 'odoo8': return `${main_repo}#odoo8`;
-        case 'odoo9': return `${main_repo}#odoo9`
-        case 'odoo10': return `${main_repo}#odoo10`;
-        case 'odoo11': return `${main_repo}#odoo11`;
-        default: return `${main_repo}#simple`;
+		case 'simple': return `${main_repo}#simple`;
+		case 'odoo8': return `${main_repo}#odoo8`;
+		case 'odoo9': return `${main_repo}#odoo9`
+		case 'odoo10': return `${main_repo}#odoo10`;
+		case 'odoo11': return `${main_repo}#odoo11`;
+		default: return `${main_repo}#simple`;
     }
 }
 
@@ -71,11 +67,10 @@ function downloadAndGenerate (repo, dest) {
     spinner.start();
     
     if (exists(dest)) rm(dest)
-
     download_repository(repo, dest, { clone: false }, err => {
         spinner.stop()
         if (err){ 
-            console.log('Failed to download repo ' + template + ': ' + err.message.trim())
+			console.log('Failed to download repo ' + template + ': ' + err.message.trim())
         }
     });
 }
@@ -84,4 +79,35 @@ function checkDest(dest){
     if (!exists(dest)) shell.mkdir('-p', dest);
 }
 
-program.parse(process.argv);
+// Error handlers
+const enhanceErrorMessages = (methodName, log) => {
+  program.Command.prototype[methodName] = function (...args) {
+    if (methodName === 'unknownOption' && this._allowUnknownOption) {
+      return
+    }
+    this.outputHelp()
+    console.log(`  ` + chalk.red(log(...args)))
+    console.log()
+    process.exit(1)
+  }
+}
+
+enhanceErrorMessages('missingArgument', argName => {
+  return `Missing required argument ${chalk.yellow(`<${argName}>`)}.`
+})
+
+enhanceErrorMessages('unknownOption', optionName => {
+  return `Unknown option ${chalk.yellow(optionName)}.`
+})
+
+enhanceErrorMessages('optionMissingArgument', (option, flag) => {
+  return `Missing required argument for option ${chalk.yellow(option.flags)}` + (
+    flag ? `, got ${chalk.yellow(flag)}` : ``
+  )
+})
+
+program.parse(process.argv)
+
+if (!process.argv.slice(2).length) {
+  program.outputHelp()
+}
