@@ -62,7 +62,7 @@ program.commands.forEach(
 	c => c.on('--help', () => console.log())
 )
 
-function generateNameRepoitory(name){
+function generateNameRepository(name){
     const main_repo = 'BMKeros/vudoo-templates';
     switch(name){
         case 'simple': return `${main_repo}#simple`;
