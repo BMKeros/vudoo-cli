@@ -1,21 +1,11 @@
 #!/usr/bin/env node
 const program = require('commander');
 const chalk = require('chalk');
-const ora = require('ora');
-const path = require('path');
-const rm = require('rimraf').sync;
-const fs = require('fs');
-const download_repository = require('download-git-repo');
-const shell = require('shelljs');
-const generator = require('../lib/generator');
-const inquirer = require('inquirer');
 const action_command_init = require('../commands/init');
 
-const exists = fs.existsSync;
-
 program
-	.version('0.0.1')
-	.description('CLI application to generate templates for Odoo-Vue Integration')
+    .version('0.0.1')
+    .description('CLI application to generate templates for Odoo-Vue Integration')
 
 program
     .command('init <module-name>')
@@ -25,53 +15,53 @@ program
     .action(action_command_init);
 
 program
-	.arguments('<command>')
-	.action((cmd) => {
-		program.outputHelp()
-		console.log(`  ` + chalk.red(`Unknown command ${chalk.yellow(cmd)}.`))
-		console.log()
-	})
+    .arguments('<command>')
+    .action((cmd) => {
+        program.outputHelp();
+        console.log(`  ` + chalk.red(`Unknown command ${chalk.yellow(cmd)}.`));
+        console.log();
+    });
 
 program
-	.on('--help', () => {
-		console.log()
-		console.log(`  Run ${chalk.cyan(`vudoo-cli <command> --help`)} for detailed usage of given command.`)
-		console.log()
-	})
+    .on('--help', () => {
+        console.log();
+        console.log(`  Run ${chalk.cyan(`vudoo-cli <command> --help`)} for detailed usage of given command.`);
+        console.log();
+    });
 
 program.commands.forEach(
-	c => c.on('--help', () => console.log())
-)
+    c => c.on('--help', () => console.log())
+);
 
 // Error handlers
 const enhanceErrorMessages = (methodName, log) => {
-  program.Command.prototype[methodName] = function (...args) {
-    if (methodName === 'unknownOption' && this._allowUnknownOption) {
-      return
+    program.Command.prototype[methodName] = function (...args) {
+        if (methodName === 'unknownOption' && this._allowUnknownOption) {
+            return
+        }
+        this.outputHelp();
+        console.log(`  ` + chalk.red(log(...args)));
+        console.log();
+        process.exit(1);
     }
-    this.outputHelp()
-    console.log(`  ` + chalk.red(log(...args)))
-    console.log()
-    process.exit(1)
-  }
-}
+};
 
 enhanceErrorMessages('missingArgument', argName => {
-  return `Missing required argument ${chalk.yellow(`<${argName}>`)}.`
-})
+    return `Missing required argument ${chalk.yellow(`<${argName}>`)}.`;
+});
 
 enhanceErrorMessages('unknownOption', optionName => {
-  return `Unknown option ${chalk.yellow(optionName)}.`
-})
+    return `Unknown option ${chalk.yellow(optionName)}.`;
+});
 
 enhanceErrorMessages('optionMissingArgument', (option, flag) => {
-  return `Missing required argument for option ${chalk.yellow(option.flags)}` + (
-    flag ? `, got ${chalk.yellow(flag)}` : ``
-  )
-})
+    return `Missing required argument for option ${chalk.yellow(option.flags)}` + (
+        flag ? `, got ${chalk.yellow(flag)}` : ``
+    )
+});
 
-program.parse(process.argv)
+program.parse(process.argv);
 
 if (!process.argv.slice(2).length) {
-  program.outputHelp()
+    program.outputHelp();
 }
