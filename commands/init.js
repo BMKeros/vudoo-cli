@@ -40,7 +40,7 @@ const generateNameRepository = (name) => {
         case 'odoo8':
             return `${main_repo}#odoo8`;
         case 'odoo9':
-            return `${main_repo}#odoo9`
+            return `${main_repo}#odoo9`;
         case 'odoo10':
             return `${main_repo}#odoo10`;
         case 'odoo11':
