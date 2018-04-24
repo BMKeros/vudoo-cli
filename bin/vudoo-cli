@@ -2,7 +2,7 @@
 const program = require('commander');
 const chalk = require('chalk');
 const action_command_init = require('../commands/init');
-
+const action_build_app = require('../commands/build');
 program
     .version('0.0.1')
     .description('CLI application to generate templates for Odoo-Vue Integration')
@@ -13,6 +13,11 @@ program
     .option("-t, --template [type]", "specify template (odoo8|odoo9|odoo10|odoo11|simple)", "simple")
     .option("-d, --destination [path]", "Destination of the module", '.')
     .action(action_command_init);
+
+program
+    .command('build <path-module>')
+    .description('Build app vue')
+    .action(action_build_app);
 
 program
     .arguments('<command>')
