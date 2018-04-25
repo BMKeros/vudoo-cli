@@ -43,6 +43,8 @@ const generateNameRepository = (name) => {
             return `${main_repo}#odoo9`;
         case 'odoo10':
             return `${main_repo}#odoo10`;
+        case 'odoo10-semantic':
+            return `${main_repo}#odoo10-semantic`;
         case 'odoo11':
             return `${main_repo}#odoo11`;
         default:
