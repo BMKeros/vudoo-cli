@@ -45,6 +45,8 @@ const generateNameRepository = (name) => {
             return `${main_repo}#odoo10`;
         case 'odoo10-semantic':
             return `${main_repo}#odoo10-semantic`;
+        case 'odoo10-vuetify':
+            return `${main_repo}#odoo10-vuetify`;
         case 'odoo11':
             return `${main_repo}#odoo11`;
         default:
@@ -66,7 +68,7 @@ const download_template = (repo, template) => {
             shell.mkdir('-p', dest_download);
         }
 
-        download_repository(repo, dest_download, { clone: false }, err => {
+        download_repository(repo, dest_download, {clone: false}, err => {
             spinner.stop();
             if (err) {
                 reject(err);
