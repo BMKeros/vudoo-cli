@@ -45,6 +45,8 @@ const generateNameRepository = (name) => {
             return `${main_repo}#odoo10`;
         case 'odoo10-semantic':
             return `${main_repo}#odoo10-semantic`;
+        case 'odoo10-demo':
+            return `${main_repo}#odoo10-demo`;
         case 'odoo10-vuetify':
             return `${main_repo}#odoo10-vuetify`;
         case 'odoo11':
