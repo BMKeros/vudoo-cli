@@ -7,6 +7,7 @@ const fs = require('fs');
 const rimraf = require('rimraf');
 const generator = require('../lib/generator');
 const local_path = require('../lib/local-path');
+const chalk = require('chalk');
 
 const rm = rimraf.sync;
 const exists = fs.existsSync;
@@ -17,19 +18,24 @@ const action_init = (module_name, options) => {
     const dest_generate = (options.destination === '.') ? path.resolve('.') : (options.destination);
     const full_path_project = path.join(dest_generate, module_name);
 
-    inquirer.prompt([{
-        type: 'confirm',
-        message: dest_generate === '.'
-            ? 'Generate project in current directory?'
-            : 'Target directory exists. Continue?',
-        name: 'ok'
-    }]).then(answers => {
-        if (answers.ok) {
-            download_template(repository, template)
-                .then(path_download => generate_template(module_name, path_download, dest_generate))
-                .catch(err => console.log('Failed to download ' + repository + ': ' + err.message.trim()))
-        }
-    }).catch(console.log);
+    if (exists(full_path_project)) {
+        inquirer.prompt([{
+            type: 'confirm',
+            message: 'Target directory exists. Continue?',
+            name: 'ok'
+        }]).then(answers => {
+            if (answers.ok) {
+                download_template(repository, template)
+                    .then(path_download => generate_template(module_name, path_download, dest_generate))
+                    .catch(err => console.log('Failed to download ' + repository + ': ' + err.message.trim()))
+            }
+        }).catch(console.log);
+    }
+    else {
+        download_template(repository, template)
+            .then(path_download => generate_template(module_name, path_download, dest_generate))
+            .catch(err => console.log('Failed to download ' + repository + ': ' + err.message.trim()))
+    }
 };
 
 const generateNameRepository = (name) => {
@@ -60,7 +66,7 @@ const download_template = (repo, template) => {
     const dest_download = path.join(local_path.baseTemplates(), template);
 
     return new Promise((resolve, reject) => {
-        const spinner = ora('Downloading template from vudoo-templates');
+        const spinner = ora(`Downloading ${chalk.underline.bgYellow(template)} template from vudoo-templates`);
         spinner.start();
 
         if (exists(dest_download)) {
@@ -70,7 +76,7 @@ const download_template = (repo, template) => {
             shell.mkdir('-p', dest_download);
         }
 
-        download_repository(repo, dest_download, {clone: false}, err => {
+        download_repository(repo, dest_download, { clone: false }, err => {
             spinner.stop();
             if (err) {
                 reject(err);
@@ -84,7 +90,7 @@ const download_template = (repo, template) => {
 
 const generate_template = (module_name, path_template, dest_generate) => {
     const dest_tmp = path.join(dest_generate, module_name);
-    generator(path_template, dest_tmp);
+    generator(module_name, path_template, dest_tmp);
 };
 
 module.exports = action_init;
