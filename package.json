@@ -34,9 +34,10 @@
     "metalsmith": "^2.3.0",
     "ora": "^2.1.0",
     "rimraf": "^2.6.2",
-    "shelljs": "^0.8.1"
-  },
-  "devDependencies": {
+    "shelljs": "^0.8.1",
     "inquirer": "^5.2.0"
+  },
+  "bin": {
+    "vudoo-cli": "bin/vudoo-cli"
   }
 }
